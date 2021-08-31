@@ -1,0 +1,383 @@
+{
+  "name": "fetching attendance",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        30,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "name": "SplitInBatches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [
+        680,
+        310
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$node[\"SplitInBatches\"].context[\"noItemsLeft\"]}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        980,
+        550
+      ]
+    },
+    {
+      "parameters": {},
+      "name": "NoOp",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        530
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "var today= new Date();\nvar today_date=today.getDate()+'/'+(today.getMonth()+1);\nvar item=[];\n\nvar data= $items();\n// You can write logs to the browser console\n\n\n\nitem.push({\n    json: {\n      id: 1\n    }\n  });\n  \nconsole.log(data);\n\nreturn data;"
+      },
+      "name": "Function1",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        2100,
+        320
+      ]
+    },
+    {
+      "parameters": {},
+      "name": "Function2",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1410,
+        -10
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "lookup",
+        "sheetId": "=1Uor9J8IRh6aE2IiHNSs0KC7qPpNZ4aaRAKf3Qf30vgM",
+        "range": "=daterange!A:F",
+        "lookupColumn": "currentdate_flag",
+        "lookupValue": "1",
+        "options": {
+          "valueRenderMode": "FORMATTED_VALUE"
+        }
+      },
+      "name": "fetch_range",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        180,
+        310
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleApi": "nisha "
+      }
+    },
+    {
+      "parameters": {
+        "sheetId": "={{$node[\"SplitInBatches\"].json[\"id\"]}}",
+        "range": "=Attendance!{{$node[\"fetch_range\"].json[\"attendance\"]}}",
+        "rawData": true,
+        "options": {
+          "continue": false,
+          "valueRenderMode": "FORMATTED_VALUE"
+        }
+      },
+      "name": "Fetching Attendance Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        290
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleApi": "nisha "
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// get all value from current or parent node\nconst allItems = $items();\nconst validItems=[];\n\n// Loop over inputs and add a new field called 'myNewField' to the JSON of each one\nfor (item of allItems)\n{ \n  var file_name = item.json.name;\n  var file_id = item.json.id;\n  console.log(file_name);\n \n  const pattern = new RegExp('^[A-Z]{3}-[0-9]{3}-[A-Za-z0-9]{3,15}-[0-9]{6}-[A-Za-z]{5} [0-9]{1,2}.[0-9]{1,2}-[A-Za-z]{2,10}$', 'i');\n  if (pattern.test(file_name) === true)\n  {  \n    validItems.push(item);  \n    }\n}\n\nreturn validItems;\n"
+      },
+      "name": "Filter sheet",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        510,
+        320
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "list",
+        "queryFilters": {
+          "mimeType": [
+            {
+              "mimeType": "application/vnd.google-apps.spreadsheet"
+            }
+          ],
+          "name": []
+        },
+        "options": {
+          "fields": [
+            "id",
+            "name"
+          ]
+        }
+      },
+      "name": "Fetch all Sheets",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 1,
+      "position": [
+        340,
+        310
+      ],
+      "credentials": {
+        "googleApi": "nisha "
+      }
+    },
+    {
+      "parameters": {
+        "sheetId": "={{$node[\"SplitInBatches\"].json[\"id\"]}}",
+        "range": "=InternalSmry!{{$node[\"fetch_range\"].json[\"internalsumry_data\"]}}",
+        "options": {
+          "valueRenderMode": "FORMATTED_VALUE"
+        }
+      },
+      "name": "Fetching student data ",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        1750,
+        290
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleApi": "nisha "
+      }
+    },
+    {
+      "parameters": {
+        "sheetId": "={{$node[\"SplitInBatches\"].json[\"id\"]}}",
+        "range": "=C3:C25",
+        "options": {
+          "valueRenderMode": "FORMATTED_VALUE"
+        }
+      },
+      "name": "Fetching batch detail",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        840,
+        260
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleApi": "nisha "
+      }
+    },
+    {
+      "parameters": {
+        "sheetId": "={{$node[\"SplitInBatches\"].json[\"id\"]}}",
+        "range": "=Attendance!{{$node[\"fetch_range\"].json[\"student_name_fellowship_id \"]}}",
+        "options": {
+          "valueRenderMode": "FORMATTED_VALUE"
+        }
+      },
+      "name": "Fetching fellowship id AND name",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        50
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleApi": "nisha "
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "var today= new Date();\nvar today_date=today.getDate()+'/'+(today.getMonth()+1);\nvar item=[];\n\nvar data= $items();\n// You can write logs to the browser console\n\n\n\nitem.push({\n    json: {\n      id: 1\n    }\n  });\n  \nconsole.log(data);\n\nreturn data;"
+      },
+      "name": "fetch student data filtered",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1410,
+        290
+      ]
+    }
+  ],
+  "connections": {
+    "SplitInBatches": {
+      "main": [
+        [
+          {
+            "node": "Fetching batch detail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "NoOp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SplitInBatches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "fetch_range",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function1": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fetch_range": {
+      "main": [
+        [
+          {
+            "node": "Fetch all Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetching Attendance Data": {
+      "main": [
+        [
+          {
+            "node": "fetch student data filtered",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter sheet": {
+      "main": [
+        [
+          {
+            "node": "SplitInBatches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch all Sheets": {
+      "main": [
+        [
+          {
+            "node": "Filter sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetching student data ": {
+      "main": [
+        [
+          {
+            "node": "Function1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetching batch detail": {
+      "main": [
+        [
+          {
+            "node": "Fetching fellowship id AND name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetching fellowship id AND name": {
+      "main": [
+        [
+          {
+            "node": "Fetching Attendance Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fetch student data filtered": {
+      "main": [
+        [
+          {
+            "node": "Fetching student data ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": 7
+}
